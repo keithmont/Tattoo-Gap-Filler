@@ -159,6 +159,24 @@ export default function App() {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<'American Traditional' | 'Japanese Traditional'>('American Traditional');
   const [error, setError] = useState<string | null>(null);
+  const [hasKey, setHasKey] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio?.hasSelectedApiKey) {
+        const selected = await window.aistudio.hasSelectedApiKey();
+        setHasKey(selected);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleOpenKeyDialog = async () => {
+    if (window.aistudio?.openSelectKey) {
+      await window.aistudio.openSelectKey();
+      setHasKey(true);
+    }
+  };
 
   const stageRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,6 +248,11 @@ export default function App() {
 
   const generateFlash = async () => {
     if (!newRect || !prompt) return;
+
+    if (!hasKey) {
+      await handleOpenKeyDialog();
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
@@ -400,6 +423,15 @@ export default function App() {
                       <strong>Error:</strong> {error}
                     </div>
                   )}
+
+                  {!hasKey && (
+                    <button
+                      onClick={handleOpenKeyDialog}
+                      className="w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-medium rounded border border-amber-300 transition-colors"
+                    >
+                      Connect Gemini API Key
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -436,17 +468,6 @@ export default function App() {
           <div className="flex-1 min-w-0">
             <Win95Window title="Canvas - TattooPreview.bmp" className="h-full">
               <div className="bg-[#808080] border-2 border-inset border-[#808080] overflow-auto relative min-h-[600px] flex items-start justify-center p-4 custom-scrollbar">
-                {!bgImage && (
-                  <div className="text-center p-8 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#808080] border-r-[#808080] self-center">
-                    <Monitor size={48} className="mx-auto mb-4 text-[#808080]" />
-                    <p className="text-[#808080] font-bold">No image loaded.</p>
-                    <p className="text-xs text-[#808080]">Upload a photo of your tattoos to begin.</p>
-                    <Win95Button onClick={() => fileInputRef.current?.click()} className="mt-4 mx-auto">
-                      Load Image...
-                    </Win95Button>
-                  </div>
-                )}
-                
                 <div className={`shadow-2xl bg-white ${tool === 'draw' ? 'cursor-crosshair' : 'cursor-default'}`}>
                   <Stage
                     width={canvasSize.width}

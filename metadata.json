@@ -1,7 +1,5 @@
 {
   "name": "AI Tattoo Studio",
   "description": "A retro Windows 95-style tool that uses AI (Nano Banana) to generate realistic American and Japanese traditional tattoos to fill gaps on your skin.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "requestFramePermissions": []
 }

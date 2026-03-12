@@ -13,6 +13,11 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", env: process.env.NODE_ENV });
+  });
+
   // API Route for Tattoo Generation
   app.post("/api/generate-tattoo", async (req, res) => {
     const { prompt, style } = req.body;
@@ -21,10 +26,22 @@ async function startServer() {
       return res.status(400).json({ error: "Prompt and style are required" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    let apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    
     if (!apiKey) {
-      console.error("GEMINI_API_KEY is missing from environment");
-      return res.status(500).json({ error: "API Key is missing. Please set GEMINI_API_KEY in settings." });
+      console.error("No API key found in GEMINI_API_KEY or API_KEY");
+      return res.status(500).json({ 
+        error: "API Key is missing. Please go to the 'Settings' menu in AI Studio and add a variable named GEMINI_API_KEY with your key." 
+      });
+    }
+
+    // Clean the API key
+    apiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+
+    console.log(`Attempting generation with key length: ${apiKey.length}, prefix: ${apiKey.substring(0, 4)}...`);
+
+    if (!apiKey.startsWith('AIza')) {
+      console.warn("API key does not start with 'AIza'. This might be an invalid key type.");
     }
 
     const aiInstance = new GoogleGenAI({ apiKey });
@@ -37,8 +54,14 @@ async function startServer() {
       console.log("Generating tattoo for prompt:", prompt);
       
       const response = await aiInstance.models.generateContent({
-        model: "gemini-2.5-flash-image",
+        model: "gemini-3.1-flash-image-preview",
         contents: [{ parts: [{ text: fullPrompt }] }],
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1",
+            imageSize: "1K"
+          }
+        }
       });
 
       console.log("Gemini response received");
@@ -72,7 +95,9 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    
+    // Explicitly handle SPA routing for non-API routes
+    app.get(/^(?!\/api).+/, (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
