@@ -249,9 +249,15 @@ export default function App() {
   const generateFlash = async () => {
     if (!newRect || !prompt) return;
 
+    // Check if we have a key (either from the dialog or we assume it's in the env)
+    // We can't easily check the server's env from here, but we can check the dialog state
     if (!hasKey) {
-      await handleOpenKeyDialog();
-      return;
+      const confirmed = await window.aistudio?.hasSelectedApiKey?.();
+      if (!confirmed) {
+        await handleOpenKeyDialog();
+        return;
+      }
+      setHasKey(true);
     }
 
     setIsGenerating(true);

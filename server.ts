@@ -19,7 +19,8 @@ async function startServer() {
   });
 
   // API Route for Tattoo Generation
-  app.post("/api/generate-tattoo", async (req, res) => {
+  app.post("/api/generate-tattoo", async (req, res, next) => {
+    console.log(`[${new Date().toISOString()}] POST /api/generate-tattoo`);
     const { prompt, style } = req.body;
 
     if (!prompt || !style) {
@@ -101,6 +102,20 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // Global Error Handler
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("Unhandled Server Error:", err);
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      message: err.message || "An unexpected error occurred" 
+    });
+  });
+
+  // API 404 Handler
+  app.use("/api/*", (req, res) => {
+    res.status(404).json({ error: "API route not found" });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
