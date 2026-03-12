@@ -164,10 +164,31 @@ export default function App() {
 
   const testApi = async () => {
     try {
-      setApiStatus('Testing...');
-      const res = await fetch('/api/health');
-      const data = await res.json();
-      setApiStatus(`Success: ${JSON.stringify(data)}`);
+      setApiStatus('Testing /api/health...');
+      const res1 = await fetch('/api/health');
+      if (res1.ok) {
+        const data = await res1.json();
+        setApiStatus(`Success /api/health: ${JSON.stringify(data)}`);
+        return;
+      }
+
+      setApiStatus('Testing /api-test...');
+      const res2 = await fetch('/api-test');
+      if (res2.ok) {
+        const data = await res2.json();
+        setApiStatus(`Success /api-test: ${JSON.stringify(data)}`);
+        return;
+      }
+
+      setApiStatus('Testing /ping...');
+      const res3 = await fetch('/ping');
+      if (res3.ok) {
+        const text = await res3.text();
+        setApiStatus(`Success /ping: ${text}`);
+        return;
+      }
+
+      setApiStatus('All tests failed with 404');
     } catch (err: any) {
       setApiStatus(`Error: ${err.message}`);
     }

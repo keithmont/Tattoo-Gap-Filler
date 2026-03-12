@@ -11,9 +11,20 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // 1. TEST ROUTES (BEFORE EVERYTHING)
+  app.get("/ping", (req, res) => {
+    console.log("PING received");
+    res.send("pong");
+  });
+
+  app.get("/api-test", (req, res) => {
+    console.log("API-TEST received");
+    res.json({ message: "api-test works" });
+  });
+
   app.use(express.json());
 
-  // Logging middleware for all requests
+  // Logging middleware
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
