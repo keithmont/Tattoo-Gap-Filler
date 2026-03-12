@@ -160,36 +160,6 @@ export default function App() {
   const [style, setStyle] = useState<'American Traditional' | 'Japanese Traditional'>('American Traditional');
   const [error, setError] = useState<string | null>(null);
   const [hasKey, setHasKey] = useState<boolean>(true);
-  const [apiStatus, setApiStatus] = useState<string | null>(null);
-
-  const testApi = async () => {
-    try {
-      setApiStatus('Testing /api/health...');
-      const res1 = await fetch('/api/health');
-      const text1 = await res1.text();
-      try {
-        const data = JSON.parse(text1);
-        setApiStatus(`Success /api/health: ${JSON.stringify(data)}`);
-        return;
-      } catch (e) {
-        setApiStatus(`Fail /api/health: ${res1.status} - ${text1.substring(0, 50)}...`);
-      }
-
-      setApiStatus('Testing /ping...');
-      const res3 = await fetch('/ping');
-      const text3 = await res3.text();
-      if (res3.ok) {
-        setApiStatus(`Success /ping: ${text3}`);
-        return;
-      } else {
-        setApiStatus(`Fail /ping: ${res3.status} - ${text3.substring(0, 50)}...`);
-      }
-
-      setApiStatus('All tests failed');
-    } catch (err: any) {
-      setApiStatus(`Error: ${err.message}`);
-    }
-  };
 
   useEffect(() => {
     const checkKey = async () => {
@@ -491,20 +461,6 @@ export default function App() {
                   {selectedTattoo?.grayscale ? <Sun size={14} /> : <Moon size={14} />}
                   {selectedTattoo?.grayscale ? 'Color' : 'Grayscale'}
                 </Win95Button>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-xs font-bold border-b border-[#808080] pb-1 flex items-center gap-1 text-red-600">
-                  DEBUG
-                </div>
-                <Win95Button onClick={testApi} className="w-full justify-center text-[10px]">
-                  Test API Connection
-                </Win95Button>
-                {apiStatus && (
-                  <div className="text-[9px] break-all p-1 bg-white border border-inset border-[#808080]">
-                    {apiStatus}
-                  </div>
-                )}
               </div>
 
               <Win95Button onClick={downloadResult} disabled={!bgImage} className="w-full justify-center mt-auto">

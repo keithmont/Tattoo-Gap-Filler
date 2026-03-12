@@ -22,12 +22,7 @@ async function startServer() {
     next();
   });
 
-  // 1. ROOT TEST ROUTES
-  app.get("/ping", (req, res) => {
-    res.send("pong");
-  });
-
-  // 2. API ROUTES
+  // 1. API ROUTES
   const apiRouter = express.Router();
 
   apiRouter.get("/health", (req, res) => {
@@ -56,9 +51,13 @@ async function startServer() {
 
     try {
       const response = await aiInstance.models.generateContent({
-        model: "gemini-3.1-flash-image-preview",
+        model: "gemini-2.5-flash-image",
         contents: [{ parts: [{ text: fullPrompt }] }],
-        config: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } }
+        config: { 
+          imageConfig: { 
+            aspectRatio: "1:1"
+          } 
+        }
       });
 
       let imageData = null;
