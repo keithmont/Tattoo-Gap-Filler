@@ -166,29 +166,26 @@ export default function App() {
     try {
       setApiStatus('Testing /api/health...');
       const res1 = await fetch('/api/health');
-      if (res1.ok) {
-        const data = await res1.json();
+      const text1 = await res1.text();
+      try {
+        const data = JSON.parse(text1);
         setApiStatus(`Success /api/health: ${JSON.stringify(data)}`);
         return;
-      }
-
-      setApiStatus('Testing /api-test...');
-      const res2 = await fetch('/api-test');
-      if (res2.ok) {
-        const data = await res2.json();
-        setApiStatus(`Success /api-test: ${JSON.stringify(data)}`);
-        return;
+      } catch (e) {
+        setApiStatus(`Fail /api/health: ${res1.status} - ${text1.substring(0, 50)}...`);
       }
 
       setApiStatus('Testing /ping...');
       const res3 = await fetch('/ping');
+      const text3 = await res3.text();
       if (res3.ok) {
-        const text = await res3.text();
-        setApiStatus(`Success /ping: ${text}`);
+        setApiStatus(`Success /ping: ${text3}`);
         return;
+      } else {
+        setApiStatus(`Fail /ping: ${res3.status} - ${text3.substring(0, 50)}...`);
       }
 
-      setApiStatus('All tests failed with 404');
+      setApiStatus('All tests failed');
     } catch (err: any) {
       setApiStatus(`Error: ${err.message}`);
     }
