@@ -158,6 +158,7 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<'American Traditional' | 'Japanese Traditional'>('American Traditional');
+  const [error, setError] = useState<string | null>(null);
 
   const stageRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +232,7 @@ export default function App() {
     if (!newRect || !prompt) return;
 
     setIsGenerating(true);
+    setError(null);
     try {
       const imageUrl = await generateTattooImage(prompt, style);
       if (imageUrl) {
@@ -256,8 +258,9 @@ export default function App() {
         setNewRect(null);
         setTool('select');
       }
-    } catch (error) {
-      console.error('Failed to generate tattoo:', error);
+    } catch (err: any) {
+      console.error('Failed to generate tattoo:', err);
+      setError(err.message || 'Failed to generate tattoo. Please check your API key and try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -390,6 +393,12 @@ export default function App() {
                     <p className="text-[9px] text-blue-800 italic animate-pulse">
                       * Draw a box on the canvas to select the gap area
                     </p>
+                  )}
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 p-2 text-[10px] text-red-700">
+                      <strong>Error:</strong> {error}
+                    </div>
                   )}
                 </div>
               </div>
