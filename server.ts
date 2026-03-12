@@ -13,15 +13,26 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Health check
-  app.get("/api/health", (req, res) => {
+  // Logging middleware for all requests
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+  });
+
+  // API routes
+  const apiRouter = express.Router();
+
+  apiRouter.get("/health", (req, res) => {
     res.json({ status: "ok", env: process.env.NODE_ENV });
   });
 
-  // API Route for Tattoo Generation
-  app.post("/api/generate-tattoo", async (req, res, next) => {
-    console.log(`[${new Date().toISOString()}] POST /api/generate-tattoo`);
+  apiRouter.get("/test", (req, res) => {
+    res.json({ message: "API is working" });
+  });
+
+  apiRouter.post("/generate-tattoo", async (req, res) => {
     const { prompt, style } = req.body;
+    console.log(`Generating tattoo: ${prompt} (${style})`);
 
     if (!prompt || !style) {
       return res.status(400).json({ error: "Prompt and style are required" });
@@ -30,21 +41,12 @@ async function startServer() {
     let apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
     
     if (!apiKey) {
-      console.error("No API key found in GEMINI_API_KEY or API_KEY");
       return res.status(500).json({ 
-        error: "API Key is missing. Please go to the 'Settings' menu in AI Studio and add a variable named GEMINI_API_KEY with your key." 
+        error: "API Key is missing. Please add GEMINI_API_KEY to your settings." 
       });
     }
 
-    // Clean the API key
     apiKey = apiKey.trim().replace(/^["']|["']$/g, '');
-
-    console.log(`Attempting generation with key length: ${apiKey.length}, prefix: ${apiKey.substring(0, 4)}...`);
-
-    if (!apiKey.startsWith('AIza')) {
-      console.warn("API key does not start with 'AIza'. This might be an invalid key type.");
-    }
-
     const aiInstance = new GoogleGenAI({ apiKey });
 
     const fullPrompt = `A single, isolated ${style} tattoo flash illustration of a ${prompt}. 
@@ -52,8 +54,6 @@ async function startServer() {
     No skin, no background, just the tattoo design.`;
 
     try {
-      console.log("Generating tattoo for prompt:", prompt);
-      
       const response = await aiInstance.models.generateContent({
         model: "gemini-3.1-flash-image-preview",
         contents: [{ parts: [{ text: fullPrompt }] }],
@@ -64,8 +64,6 @@ async function startServer() {
           }
         }
       });
-
-      console.log("Gemini response received");
 
       let imageData = null;
       for (const part of response.candidates?.[0]?.content?.parts || []) {
@@ -81,12 +79,15 @@ async function startServer() {
         res.status(500).json({ error: "No image data returned from Gemini" });
       }
     } catch (error: any) {
-      console.error("Error generating tattoo image:", error);
+      console.error("Gemini Error:", error);
       res.status(500).json({ error: error.message || "Internal server error" });
     }
   });
 
-  // Vite middleware for development
+  // Mount API router
+  app.use("/api", apiRouter);
+
+  // Vite/Static middleware
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -110,11 +111,6 @@ async function startServer() {
       error: "Internal Server Error", 
       message: err.message || "An unexpected error occurred" 
     });
-  });
-
-  // API 404 Handler
-  app.use("/api/*", (req, res) => {
-    res.status(404).json({ error: "API route not found" });
   });
 
   app.listen(PORT, "0.0.0.0", () => {
