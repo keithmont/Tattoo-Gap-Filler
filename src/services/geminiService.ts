@@ -1,7 +1,9 @@
 
 export const generateTattooImage = async (prompt: string, style: string) => {
   try {
-    const response = await fetch("/api/generate-tattoo", {
+    const url = "/api/generate-tattoo";
+    console.log(`Fetching: ${window.location.origin}${url}`);
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

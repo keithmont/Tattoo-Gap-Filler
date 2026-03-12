@@ -160,6 +160,18 @@ export default function App() {
   const [style, setStyle] = useState<'American Traditional' | 'Japanese Traditional'>('American Traditional');
   const [error, setError] = useState<string | null>(null);
   const [hasKey, setHasKey] = useState<boolean>(true);
+  const [apiStatus, setApiStatus] = useState<string | null>(null);
+
+  const testApi = async () => {
+    try {
+      setApiStatus('Testing...');
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      setApiStatus(`Success: ${JSON.stringify(data)}`);
+    } catch (err: any) {
+      setApiStatus(`Error: ${err.message}`);
+    }
+  };
 
   useEffect(() => {
     const checkKey = async () => {
@@ -461,6 +473,20 @@ export default function App() {
                   {selectedTattoo?.grayscale ? <Sun size={14} /> : <Moon size={14} />}
                   {selectedTattoo?.grayscale ? 'Color' : 'Grayscale'}
                 </Win95Button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-xs font-bold border-b border-[#808080] pb-1 flex items-center gap-1 text-red-600">
+                  DEBUG
+                </div>
+                <Win95Button onClick={testApi} className="w-full justify-center text-[10px]">
+                  Test API Connection
+                </Win95Button>
+                {apiStatus && (
+                  <div className="text-[9px] break-all p-1 bg-white border border-inset border-[#808080]">
+                    {apiStatus}
+                  </div>
+                )}
               </div>
 
               <Win95Button onClick={downloadResult} disabled={!bgImage} className="w-full justify-center mt-auto">

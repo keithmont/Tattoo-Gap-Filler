@@ -87,6 +87,16 @@ async function startServer() {
   // Mount API router
   app.use("/api", apiRouter);
 
+  // Catch-all for /api that didn't match
+  app.all("/api/*", (req, res) => {
+    console.log(`[404] API Route not found: ${req.method} ${req.url}`);
+    res.status(404).json({ 
+      error: "API Route not found", 
+      method: req.method, 
+      url: req.url 
+    });
+  });
+
   // Vite/Static middleware
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
